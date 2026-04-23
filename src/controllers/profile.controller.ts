@@ -24,7 +24,12 @@ export class ProfileController {
       // basic filters
       if (gender) where.gender = String(gender).toLowerCase();
       if (age_group) where.age_group = String(age_group).toLowerCase();
-      if (country_id) where.country_id = String(country_id).toLowerCase();
+
+      if (country_id) {
+        const code = String(country_id).toUpperCase().trim();
+        where.country_id = code;
+        // console.log(`${code}`)
+      }
 
       // age range
       if (min_age || max_age) {
@@ -85,91 +90,90 @@ export class ProfileController {
     }
   }
 
-  // Natural languge
   async searchProfiles(req: Request, res: Response) {
-    try {
-      const { q } = req.query;
-      if (!q || typeof q !== 'string') {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Query parameter q is required'
-        });
-      }
+  try {
+    const { q } = req.query;
 
-      const query = q.toLowerCase().trim();
-      const where: any = {};
+    if (!q || typeof q !== 'string' || q.trim() === '') {
+      return res.status(400).json({ 
+        status: 'error', 
+        message: 'Query parameter q is required' 
+      });
+    }
 
-      // parsing
-      if (query.includes('male') && !query.includes('female')) where.gender = 'male';
-      if (query.includes('female') && !query.includes('male')) where.gender = 'female';
+    const query = q.toLowerCase().trim();
+    const where: any = {};
 
-      if (query.includes('young')) {
-        where.age = { gte: 16, lte: 24 };
-      }
-      if (query.includes('teenager') || query.includes('teen')) {
-        where.age_group = 'teenager';
-      }
-      if (query.includes('adult')) where.age_group = 'adult';
-      if (query.includes('senior')) where.age_group = 'senior';
-      if (query.includes('child')) where.age_group = 'child';
+    // Gender
+    if (query.includes('male') && !query.includes('female')) where.gender = 'male';
+    if (query.includes('female') && !query.includes('male')) where.gender = 'female';
 
+    // Age group
+    if (query.includes('young')) where.age = { gte: 16, lte: 24 };
+    if (query.includes('teen') || query.includes('teenager')) where.age_group = 'teenager';
+    if (query.includes('adult')) where.age_group = 'adult';
+    if (query.includes('senior')) where.age_group = 'senior';
+    if (query.includes('child')) where.age_group = 'child';
+
+    // Age numbers
+    const ageMatch = query.match(/(\d+)/);
+    if (ageMatch) {
+      const num = Number(ageMatch[0]);
       if (query.includes('above') || query.includes('over')) {
-        const num = parseInt(query.match(/\d+/)?.[0] || '0');
-        if (num) where.age = { ...(where.age || {}), gte: num };
+        where.age = { ...(where.age || {}), gte: num };
       }
       if (query.includes('below') || query.includes('under')) {
-        const num = parseInt(query.match(/\d+/)?.[0] || '0');
-        if (num) where.age = { ...(where.age || {}), lte: num };
+        where.age = { ...(where.age || {}), lte: num };
       }
+    }
 
-      // Country detection (simple keyword match)
-      const countryMap: Record<string, string> = {
-        'nigeria': 'NG', 'kenya': 'KE', 'ghana': 'GH', 'tanzania': 'TZ',
-        'angola': 'AO', 'egypt': 'EG', 'south africa': 'ZA'
-      };
+    // Country detection (simple keyword match)
+    const countryMap: Record<string, string> = {
+      'nigeria': 'NG', 'kenya': 'KE', 'ghana': 'GH', 'tanzania': 'TZ',
+      'uganda': 'UG', 'rwanda': 'RW', 'angola': 'AO', 'south africa': 'ZA',
+      'egypt': 'EG', 'morocco': 'MA', 'senegal': 'SN', 'dr congo': 'CD'
+    };
 
-      for (const [country, code] of Object.entries(countryMap)) {
-        if (query.includes(country)) {
-          where.country_id = code;
-          break;
-        }
+    for (const [key, code] of Object.entries(countryMap)) {
+      if (query.includes(key)) {
+        where.country_id = code;
+        break;
       }
+    }
 
-      if (Object.keys(where).length === 0) {
-        return res.status(422).json({
-          status: 'error',
-          message: 'Unable to interpret query'
-        });
-      }
+    if (Object.keys(where).length === 0) {
+      return res.status(422).json({
+        status: 'error',
+        message: 'Unable to interpret query'
+      });
+    }
 
       const page = Number(req.query.page) || 1;
       const limit = Math.min(50, Number(req.query.limit) || 10);
 
-      const [data, total] = await Promise.all([
-        prisma.profile.findMany({
-          where,
-          orderBy: { created_at: 'desc' },
-          skip: (page - 1) * limit,
-          take: limit
-        }),
-        prisma.profile.count({ where })
-      ]);
+    const [data, total] = await Promise.all([
+      prisma.profile.findMany({
+        where,
+        orderBy: { created_at: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit
+      }),
+      prisma.profile.count({ where })
+    ]);
 
-      res.json({
-        status: 'success',
-        page,
-        limit,
-        total,
-        data
-      });
+    res.json({
+      status: 'success',
+      page,
+      limit,
+      total,
+      data
+    });
 
-    } catch (error) {
-      res.status(500).json({
-        status: 'error',
-        message: 'Internal server error'
-      })
-    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
+}
 }
 
 export const profileController = new ProfileController();

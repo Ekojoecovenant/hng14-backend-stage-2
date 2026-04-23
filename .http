@@ -1,10 +1,97 @@
 @base = https://3f93-154-160-1-246.ngrok-free.app/api/profiles
 
 ###
-GET {{base}}?gender=male&min_age=25
+GET http://localhost:5000/api/profiles?gender=female&country_id=RW&min_gender_probability=0.5&min_country_probability=0.5
 
 ###
-GET {{base}}/search?q=young males from nigeria
+GET {{base}}/search?q=Male+and+female+teenagers+above+17&limit=50
 
 ###
-GET {{base}}/search?q=females above 30
+GET {{base}}/search?q=Male+and+female+teenagers+above+17&limit=50
+
+###
+GET {{base}}
+
+###
+GET {{base}}?limit=50&page=1
+
+###
+GET {{base}}?page=1&limit=5
+
+###
+GET {{base}}?page=2&limit=5
+
+### (empty)
+GET {{base}}?gender=female&country_id=RW&min_age=69&age_group=senior
+
+###
+GET {{base}}?limit=500
+
+###
+GET {{base}}?gender=female
+
+###
+GET {{base}}?sort_by=age&order=asc&limit=50
+
+### (empty)
+GET {{base}}?gender=female&country_id=RW&min_gender_probability=0.5&min_country_probability=0.5 
+
+###
+GET {{base}}?age_group=senior
+
+###
+GET {{base}}?sort_by=age&order=desc&limit=50
+
+### (empty)
+GET {{base}}?country_id=RW 
+
+###
+GET {{base}}?gender=female&min_gender_probability=0.5
+
+###
+GET {{base}}?sort_by=created_at&order=asc&limit=50
+
+### (empty)
+GET {{base}}?country_id=RW&min_country_probability=0.5
+
+###
+GET {{base}}?sort_by=created_at&order=desc&limit=50
+
+###
+GET {{base}}?min_age=6&max_age=89
+
+###
+GET {{base}}?sort_by=gender_probability&order=asc&limit=50
+
+###
+GET {{base}}?sort_by=gender_probability&order=desc&limit=50
+
+###
+GET {{base}}/search?q=young+males&limit=50
+
+###
+GET {{base}}/search?q=young+males&limit=50
+
+###
+GET {{base}}?sort_by=unknown_field
+
+###
+GET {{base}}/search?q=zxqv+unparseable+term
+
+###
+GET {{base}}/search?q=females+above+30&limit=50 
+
+###
+GET {{base}}?limit=50&page=1
+
+###
+GET {{base}}/search?q=people+from+nigeria&limit=50
+
+###
+GET {{base}}/search?q=young+males&limit=50
+
+###
+GET {{base}}/search?q=adult+males+from+kenya&limit=50
+
+###
+GET {{base}}/search?q=Male+and+female+teenagers+above+17&limit=50
