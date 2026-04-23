@@ -19,16 +19,21 @@ export class ProfileController {
 
       const skip = (pageNum - 1) * limitNum;
 
-      // Build where clause
       const where: any = {};
 
+      // basic filters
       if (gender) where.gender = String(gender).toLowerCase();
       if (age_group) where.age_group = String(age_group).toLowerCase();
       if (country_id) where.country_id = String(country_id).toLowerCase();
 
-      if (min_age) where.age = { ...(where.age = {}), gte: Number(min_age) };
-      if (max_age) where.age = { ...(where.age = {}), lte: Number(max_age) };
-
+      // age range
+      if (min_age || max_age) {
+        where.age = {};
+        if (min_age) where.age.gte = Number(min_age);
+        if (max_age) where.age.lte = Number(max_age);
+      }
+        
+      // probability filter
       if (min_gender_probability) {
         where.gender_probability = { gte: Number(min_gender_probability) };
       }
@@ -37,21 +42,27 @@ export class ProfileController {
       }
 
       //sorting
-      const orderBy: any = {};
-      const validSortFields = ['age', 'created_at', 'gender_probability'];
-      orderBy[validSortFields.includes(String(sort_by)) ? String(sort_by) : 'created_at'] = 
-        order === 'asc' ? 'asc' : 'desc';
+      const validSort = ['age', 'created_at', 'gender_probability'];
+      const sortField = validSort.includes(String(sort_by)) ? String(sort_by) : 'created_at';
+      const sortOrder = String(order).toLowerCase() === 'asc' ? 'asc' : 'desc';
 
       const [data, total] = await Promise.all([
         prisma.profile.findMany({
           where,
-          orderBy,
+          orderBy: { [sortField]: sortOrder },
           skip,
           take: limitNum,
           select: {
-            id: true, name: true, gender: true, age: true, age_group: true,
-            country_id: true, country_name: true, gender_probability: true,
-            country_probability: true, created_at: true
+            id: true,
+            name: true,
+            gender: true,
+            age: true,
+            age_group: true,
+            country_id: true,
+            country_name: true,
+            gender_probability: true,
+            country_probability: true,
+            created_at: true
           }
         }),
         prisma.profile.count({ where })
