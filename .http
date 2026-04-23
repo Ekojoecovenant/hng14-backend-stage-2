@@ -1,0 +1,10 @@
+@base = http://localhost:5000/api/profiles
+
+###
+GET {{base}}?gender=male&min_age=25
+
+###
+GET {{base}}/search?q=young males from nigeria
+
+###
+GET {{base}}/search?q=females above 30
